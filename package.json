@@ -6,14 +6,14 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "prettier-format": "prettier --config .prettierrc \"**/src/**/*.ts\" \"**/src/**/*.tsx\" --write",
-        "lint": "eslint --fix \"**/*.{js,jsx,ts,tsx}\"",
+        "lint": "eslint --fix \"**/*.{js,ts,tsx}\"",
         "lint:stage": "pretty-quick --staged && lint-staged",
         "service:dev": "nodemon -r dotenv/config ./service/src/index.ts",
         "client:dev": "npm run dev --prefix client",
         "dev": "concurrently \"npm run service:dev\" \"npm run client:dev\""
     },
     "lint-staged": {
-        "*.{ts,js}": "eslint --cache --fix"
+        "*.{js,ts,tsx,json}": "eslint --cache --fix"
     },
     "husky": {
         "hooks": {
