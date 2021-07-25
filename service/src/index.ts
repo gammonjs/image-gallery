@@ -39,6 +39,8 @@ createConnection().then((connection) => {
         upload.single('IMAGE'),
         async (req: Request, res: Response) => {
             const file = req['file'];
+
+            // console.log(file);
             const image = new Image();
             image.generatedId = uuidv4();
             image.name = file.originalname;

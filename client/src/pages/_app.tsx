@@ -1,4 +1,5 @@
 import type { AppProps } from 'next/app';
+import 'antd/dist/antd.css';
 import Head from 'next/head';
 import React from 'react';
 
