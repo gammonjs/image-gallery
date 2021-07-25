@@ -22,7 +22,11 @@ createConnection().then((connection) => {
     const repository = connection.getRepository(Image);
     const app = express();
 
-    app.use(cors({ origin: `${process.env.CLIENT_HOST}:${process.env.CLIENT_PORT}` }));
+    app.use(
+        cors({
+            origin: `${process.env.CLIENT_HOST}:${process.env.CLIENT_PORT}`
+        })
+    );
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(express.static('public'));
