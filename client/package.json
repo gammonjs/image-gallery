@@ -1,21 +1,20 @@
 {
-  "name": "client",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint --ext .ts,.tsx"
-  },
-  "dependencies": {
-    "antd": "^4.16.8",
-    "next": "11.0.1",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
-    "styled-components": "^5.3.0"
-  },
-  "devDependencies": {
-
-  }
+    "name": "client",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start"
+    },
+    "dependencies": {
+        "antd": "^4.16.8",
+        "dotenv": "^10.0.0",
+        "dotenv-webpack": "^7.0.3",
+        "next": "11.0.1",
+        "react": "17.0.2",
+        "react-dom": "17.0.2",
+        "styled-components": "^5.3.0"
+    },
+    "devDependencies": {}
 }

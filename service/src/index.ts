@@ -7,12 +7,9 @@ import { createConnection } from 'typeorm';
 import { Image } from './entity/Image';
 import multer from 'multer';
 
-// const host = process.env.HOST;
-const port = process.env.PORT;
-
 const storage = multer.diskStorage({
     destination: (_req, _file, cb) => {
-        cb(null, './images/');
+        cb(null, './service/images/');
     },
     filename: (_req, file, cb) => {
         cb(null, file.originalname);
@@ -25,7 +22,7 @@ createConnection().then((connection) => {
     const repository = connection.getRepository(Image);
     const app = express();
 
-    app.use(cors({ origin: 'http://localhost:3000' }));
+    app.use(cors({ origin: `${process.env.CLIENT_HOST}:${process.env.CLIENT_PORT}` }));
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(express.static('public'));
@@ -61,7 +58,7 @@ createConnection().then((connection) => {
         res.json(images);
     });
 
-    app.listen(port, () => {
+    app.listen(process.env.SERVICE_PORT, () => {
         // console.log(`⚡️[server]: Server is running at ${host}:${port}`);
     });
 });

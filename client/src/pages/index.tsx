@@ -18,7 +18,9 @@ const Home: React.FC = () => {
 
     useEffect(() => {
         const load = async () => {
-            const response = await fetch('http://localhost:8000/images');
+            const response = await fetch(
+                `${process.env.SERVICE_HOST}:${process.env.SERVICE_PORT}/images`
+            );
 
             if (response.status !== 200) {
                 return;
