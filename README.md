@@ -35,11 +35,14 @@ docker-compose up
 ```
 
 ## Setup the web services
-
+note: 
+-   the images file created below is a place to store images and should be a minio/S3 bucket
+-   the postgres database should store that location
 ```
 npm install
 cd service
 npm install
+mkdir images
 cd ../client
 npm install
 cd ..
