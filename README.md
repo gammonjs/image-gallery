@@ -1,6 +1,6 @@
 # image-gallery
 
-Things I would like to do but ran out of time
+Things I would like to do but ran out of time during this weekend timebox activity
 
 -   E2E client testing with Plawright
 -   Unit client testing with React-Testing-Library
@@ -8,6 +8,8 @@ Things I would like to do but ran out of time
 -   Store href to files in Postgres
 -   Pagination (client and server) with offset, limit and name query params
 -   i18n translations which are just a little trikier in server side rendoring with things like input place holders
+-   no data indicator on gallery picture panel when no images are loaded
+-   error handling (front and back end)
 
 ## Configuration (env varables or the .env file)
 
