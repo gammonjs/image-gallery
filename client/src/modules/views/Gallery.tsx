@@ -36,8 +36,8 @@ const GalleryView: React.FC<IGalleryViewModel> = (props: IGalleryViewModel) => {
                 ) : (
                     <Spin tip="Loading..." style={{ height: '100%' }}>
                         <Alert
-                            message="Alert message title"
-                            description="Further details about the context of this alert."
+                            message="Retreiving Images"
+                            description="Image buffers are being transmitted (instead of hrefs to minio bucket) and without paging."
                             type="info"
                         />
                     </Spin>
