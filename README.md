@@ -8,8 +8,9 @@ Things I would like to do but ran out of time during this weekend timebox activi
 -   Store href to files in Postgres
 -   Pagination (client and server) with offset, limit and name query params
 -   i18n translations which are just a little trikier in server side rendoring with things like input place holders
--   no data indicator on gallery picture panel when no images are loaded
--   error handling (front and back end)
+-   No data indicator on gallery picture panel when no images are loaded
+-   Error handling (front and back end)
+-   Backend service should be adapted off the framework and registered into container
 
 ## Configuration (env varables or the .env file)
 
