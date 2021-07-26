@@ -1,5 +1,14 @@
 # image-gallery
 
+Things I would like to do but ran out of time
+
+-   E2E client testing with Plawright
+-   Unit client testing with React-Testing-Library
+-   Docker compose minio for image store
+-   Store href to files in Postgres
+-   Pagination (client and server) with offset, limit and name query params
+-   i18n translations which are just a little trikier in server side rendoring with things like input place holders
+
 ## Configuration (env varables or the .env file)
 
 ```
@@ -16,7 +25,7 @@ DB_ADMIN_PORT=8080
 
 ## Instantiate the database
 
-All web services must be restarted after this step (if they are already running)
+All web services must be restarted after this step (if they are already running with active connection)
 
 ```
 docker-compose up
@@ -25,13 +34,19 @@ docker-compose up
 ## Setup the web services
 
 ```
-npm run bootstrap
+npm install
+cd service
+npm install
+cd ../client
+npm install
+cd ..
 ```
 
 ## Run the service and client concurrently
 
 ```
 npm run dev
+navigate to http://localhost:3000/
 ```
 
 ## Cleanup

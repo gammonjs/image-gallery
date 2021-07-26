@@ -30,29 +30,22 @@ createConnection().then((connection) => {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(express.static('public'));
-    // app.use((error: { field: string; }) => {
-    //     console.log('This is the rejected field ->', error.field);
-    // });
 
     app.post(
         '/images',
         upload.single('IMAGE'),
         async (req: Request, res: Response) => {
             const file = req['file'];
-
-            // console.log(file);
             const image = new Image();
             image.generatedId = uuidv4();
             image.name = file.originalname;
             image.mimeType = file.mimetype;
 
             const data = await fs.promises.readFile(file.path);
-
             image.data = Buffer.from(data);
+
             const images = repository.create(image);
             const results = await repository.save(images);
-
-            // res.setHeader('X-Location', `${host}:${port}/images/${results.generatedId}`)
 
             res.status(201).json(results);
         }
