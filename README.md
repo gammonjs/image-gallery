@@ -5,7 +5,6 @@ Things I would like to do but ran out of time during this weekend timebox activi
 -   E2E client testing with Plawright
 -   Unit client testing with React-Testing-Library
 -   Docker compose minio for image store
--   Store href to files in Postgres
 -   Pagination (client and server) with offset, limit and name query params
 -   i18n translations which are just a little trikier in server side rendoring with things like input place holders
 -   No data indicator on gallery picture panel when no images are loaded
@@ -35,14 +34,17 @@ docker-compose up
 ```
 
 ## Setup the web services
-note: 
+
+note:
+
 -   the images file created below is a place to store images and should be a minio/S3 bucket
 -   the postgres database should store that location
+
 ```
 npm install
 cd service
 npm install
-mkdir images
+mkdir public
 cd ../client
 npm install
 cd ..
