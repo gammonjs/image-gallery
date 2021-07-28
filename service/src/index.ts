@@ -41,6 +41,7 @@ createConnection().then((connection) => {
             const image = new Image();
             image.name = file.originalname;
             image.generatedId = file.filename;
+            image.mimeType = file.mimetype
 
             const images = repository.create(image);
             const result = await repository.save(images);
@@ -63,6 +64,7 @@ createConnection().then((connection) => {
                 created_at: x.created_at,
                 id: x.generatedId,
                 name: x.name,
+                mimeType: x.mimeType,
                 location: `${process.env.SERVICE_HOST}:${process.env.SERVICE_PORT}/images/${x.generatedId}`
             }))
         );
@@ -73,7 +75,7 @@ createConnection().then((connection) => {
             where: { generatedId: req.params.id }
         });
 
-        // res.sendFile(path.resolve(`service/public/${image.name}`));
+        res.set({'Content-Type': image.mimeType});
         res.sendFile(`${STORE}/${image.generatedId}`, image.name);
     });
 

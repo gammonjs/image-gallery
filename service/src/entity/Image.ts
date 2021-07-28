@@ -13,4 +13,7 @@ export class Image {
 
     @Column()
     name: string;
+
+    @Column()
+    mimeType: string;
 }
