@@ -1,5 +1,6 @@
 export interface IPictureModel {
+    created_at: Date;
+    id: string;
     name: string;
-    data: Buffer;
-    mimeType: string;
+    location: string;
 }

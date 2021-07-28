@@ -1,21 +1,16 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 
 @Entity()
 export class Image {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @CreateDateColumn()
+    created_at: Date;
+
     @Column()
     generatedId: string;
 
-    @Column({
-        type: 'bytea'
-    })
-    data: Buffer;
-
     @Column()
     name: string;
-
-    @Column()
-    mimeType: string;
 }

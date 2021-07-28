@@ -32,7 +32,7 @@ const GalleryView: React.FC<IGalleryViewModel> = (props: IGalleryViewModel) => {
                 {props.images ? (
                     props.images
                         .filter((x) => x.name.includes(search ?? ''))
-                        .map((x) => <PictureCard key={x.name} {...x} />)
+                        .map((x) => <PictureCard key={x.id} {...x} />)
                 ) : (
                     <Spin tip="Loading..." style={{ height: '100%' }}>
                         <Alert

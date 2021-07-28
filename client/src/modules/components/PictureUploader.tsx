@@ -24,10 +24,12 @@ const PictureUploader: React.FC<IPictureUploader> = (
             if (info.file.status === 'done') {
                 message.success(`${info.file.name} file uploaded successfully`);
                 const image: IPictureModel = {
-                    data: info.file.response.data,
+                    created_at: info.file.response.created_at,
+                    id: info.file.response.id,
                     name: info.file.response.name,
-                    mimeType: info.file.response.mimeType
+                    location: info.file.response.location
                 };
+
                 props.addImage(image);
             } else if (info.file.status === 'error') {
                 message.error(`${info.file.name} file upload failed.`);
