@@ -57,6 +57,13 @@ npm run dev
 navigate to http://localhost:3000/
 ```
 
+## Database amin portals
+
+```
+postgres: http://localhost:8080/
+minio:    http://localhost:9001/dashboard
+```
+
 ## Cleanup
 
 This step is important because you cannot delete the image from docker itself because the config is .env based

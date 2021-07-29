@@ -5,6 +5,16 @@ import { Request, Response } from 'express';
 import { createConnection } from 'typeorm';
 import { Image } from './entity/Image';
 import multer from 'multer';
+// const Minio = require('minio');
+
+// const minioClient = new Minio.Client({
+//     endPoint: 'http://localhost:9000',
+//     port: 9000,
+//     useSSL: false,
+//     accessKey: 'Q3AM3UQ867SPQQA43P2F',
+//     secretKey: 'zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG'
+// })
+
 
 const STORE = require('path').resolve('service/public');
 
@@ -19,6 +29,12 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+
+// minioClient.makeBucket('images', 'us-east-1', function(err) {
+//     if (err) return console.log(err)
+
+//     console.log('Bucket created successfully in "us-east-1".')
+// })
 
 createConnection().then((connection) => {
     const repository = connection.getRepository(Image);
@@ -38,6 +54,19 @@ createConnection().then((connection) => {
         upload.single('IMAGE'),
         async (req: Request, res: Response) => {
             const file = req['file'];
+
+            // var metaData = {
+            //     'Content-Type': `application/octet-stream`,
+            //     'X-Amz-Meta-Testing': 1234,
+            //     'example': 5678
+            // }
+            // // Using fPutObject API upload your file to the bucket europetrip.
+            // minioClient.fPutObject('images', file.filename, `${STORE}/${file.filename}`, metaData, function(err, etag) {
+            //   if (err) return console.log(err)
+            //   console.log('File uploaded successfully.')
+            // });
+
+            
             const image = new Image();
             image.name = file.originalname;
             image.generatedId = file.filename;
