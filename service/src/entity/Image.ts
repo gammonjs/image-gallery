@@ -5,8 +5,15 @@ import {
     CreateDateColumn
 } from 'typeorm';
 
+interface IImage {
+    generatedId: string;
+    name: string;
+    mimeType: string;
+
+}
+
 @Entity()
-export class Image {
+export class Image implements IImage {
     @PrimaryGeneratedColumn()
     id: number;
 
