@@ -1,8 +1,7 @@
 import { Service } from 'typedi';
 import { ContextAdapter } from '../../adapters/context';
+import { SERVICE_DOMAIN } from '../../constants';
 import { Image } from '../../entity/Image';
-
-const SERVICE_DOMAIN = `${process.env.SERVICE_HOST}:${process.env.SERVICE_PORT}`;
 
 @Service()
 export class ImageCreated {

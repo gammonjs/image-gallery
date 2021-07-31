@@ -6,14 +6,9 @@ import {
     Repository
 } from 'typeorm';
 
-export interface IPostgresClient {
-    connect: () => Promise<boolean>;
-    connection: () => Connection;
-    getRepository<Entity>(target: EntityTarget<Entity>): Repository<Entity>;
-}
 
 @Service()
-class PostgresClient implements IPostgresClient {
+class PostgresClient {
     private _connection: Connection;
 
     connect = async (): Promise<boolean> => {
