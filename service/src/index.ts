@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Request, Response } from 'express';
 import { createConnection } from 'typeorm';
 import { Image } from './entity/Image';
-import multer from 'multer';
+import Multer from 'multer';
 const Minio = require('minio');
 
 const minioClient = new Minio.Client({
@@ -13,28 +13,13 @@ const minioClient = new Minio.Client({
     useSSL: false,
     accessKey: 'test',
     secretKey: 'testtest'
-})
-
-
-const STORE = require('path').resolve('service/public');
-
-const storage = multer.diskStorage({
-    destination: (_req, _file, cb) => {
-        cb(null, STORE);
-    },
-    filename: (_req, file, cb) => {
-        file.filename = uuidv4();
-        cb(null, file.filename);
-    }
 });
 
-const upload = multer({ storage: storage });
+minioClient.makeBucket('images', 'us-east-1', function (err) {
+    if (err) return console.log(err);
 
-minioClient.makeBucket('images', 'us-east-1', function(err) {
-    if (err) return console.log(err)
-
-    console.log('Bucket created successfully in "us-east-1".')
-})
+    console.log('Bucket created successfully in "us-east-1".');
+});
 
 createConnection().then((connection) => {
     const repository = connection.getRepository(Image);
@@ -47,40 +32,37 @@ createConnection().then((connection) => {
     );
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
-    app.use(express.static('public'));
 
     app.post(
         '/images',
-        upload.single('IMAGE'),
+        Multer({ storage: Multer.memoryStorage() }).single('IMAGE'),
         async (req: Request, res: Response) => {
-            const file = req['file'];
+            const generatedId = uuidv4();
 
-            var metaData = {
-                'Content-Type': `application/octet-stream`,
-                'X-Amz-Meta-Testing': 1234,
-                'example': 5678
-            }
-            // Using fPutObject API upload your file to the bucket europetrip.
-            minioClient.fPutObject('images', file.filename, `${STORE}/${file.filename}`, metaData, function(err, etag) {
-              if (err) return console.log(err)
-              console.log('File uploaded successfully.')
-            });
+            minioClient.putObject(
+                'images',
+                generatedId,
+                req.file.buffer,
+                async (error, etag) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    const image = new Image();
+                    image.name = req.file.originalname;
+                    image.generatedId = generatedId;
+                    image.mimeType = req.file.mimetype;
 
-            
-            const image = new Image();
-            image.name = file.originalname;
-            image.generatedId = file.filename;
-            image.mimeType = file.mimetype
+                    const images = repository.create(image);
+                    const result = await repository.save(images);
 
-            const images = repository.create(image);
-            const result = await repository.save(images);
-
-            res.status(201).json({
-                created_at: result.created_at,
-                id: result.generatedId,
-                name: result.name,
-                location: `${process.env.SERVICE_HOST}:${process.env.SERVICE_PORT}/images/${result.generatedId}`
-            });
+                    res.status(201).json({
+                        created_at: result.created_at,
+                        id: result.generatedId,
+                        name: result.name,
+                        location: `${process.env.SERVICE_HOST}:${process.env.SERVICE_PORT}/images/${result.generatedId}`
+                    });
+                }
+            );
         }
     );
 
@@ -100,12 +82,19 @@ createConnection().then((connection) => {
     });
 
     app.get('/images/:id', async (req, res) => {
-        const image = await repository.findOne({
-            where: { generatedId: req.params.id }
-        });
+        minioClient.getObject(
+            'images',
+            req.params.id,
+            function (error, stream) {
+                if (error) {
+                    return res.status(500).send(error);
+                }
+                // const contentType = stream.headers['content-type'];
 
-        res.set({'Content-Type': image.mimeType});
-        res.sendFile(`${STORE}/${image.generatedId}`, image.name);
+                res.setHeader('Content-Type', 'image/jpeg');
+                stream.pipe(res);
+            }
+        );
     });
 
     app.listen(process.env.SERVICE_PORT, () => {
