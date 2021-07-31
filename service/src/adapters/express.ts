@@ -1,35 +1,34 @@
 import { Service } from 'typedi';
 import express, { Express, Request, Response } from 'express';
-import MinioClient, { IMinioClient } from './minio';
-import PostgresClient, { IPostgresClient } from './postgres';
+import MinioClient from './minio';
+import PostgresClient from './postgres';
 import { Image } from '../entity/Image';
 import cors from 'cors';
 import Multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import { Repository } from 'typeorm';
+import internal from 'stream';
+import { ResponseFactory } from '../factories/response';
+import { ContextAdapter } from './context';
 
 const ORIGIN = `${process.env.CLIENT_HOST}:${process.env.CLIENT_PORT}`;
 const MULTER = Multer({ storage: Multer.memoryStorage() }).single('IMAGE');
 
-export interface IApplication {
+export interface IServer {
     connect(): void;
     route(): void;
     run(): Promise<void>;
 }
 
 @Service()
-class ApplicationAdapter {
+export class ImagesUsecases {
     private _repository: Repository<Image>;
     constructor(
-        // because we annotated ExampleInjectedService with the @Service()
-        // decorator TypeDI will automatically inject an instance of
-        // ExampleInjectedService here when the ExampleService class is requested
-        // from TypeDI.
         private _minioClient: MinioClient,
         private _postgresClient: PostgresClient
     ) {}
 
-    connect = async () => {
+    connect = async (): Promise<void> => {
         let success = await this._minioClient.MakeBucket('images', 'us-east-1');
         if (success == false) {
             console.log('could not connect to minio');
@@ -48,76 +47,92 @@ class ApplicationAdapter {
             .getRepository(Image);
     };
 
-    upload = async (req: Request, res: Response) => {
+    upload = async (context: ContextAdapter<Image>): Promise<Image> => {
         const generatedId = uuidv4();
 
-        await this._minioClient.Upload('images', generatedId, req.file.buffer);
-
+        await this._minioClient.Upload(
+            'images',
+            generatedId,
+            context._req.file.buffer
+        );
         const image = new Image();
-        image.name = req.file.originalname;
+        image.name = context._req.file.originalname;
         image.generatedId = generatedId;
-        image.mimeType = req.file.mimetype;
+        image.mimeType = context._req.file.mimetype;
 
         const images = this._repository.create(image);
-        const result = await this._repository.save(images);
-
-        res.status(201).json({
-            created_at: result.created_at,
-            id: result.generatedId,
-            name: result.name,
-            location: `${process.env.SERVICE_HOST}:${process.env.SERVICE_PORT}/images/${result.generatedId}`
-        });
+        return this._repository.save(images);
     };
 
-    getCollection = async (req: Request, res: Response) => {
-        const images = await this._repository.find();
-        res.setHeader('Content-Type', 'application/json');
-        res.header('X-Record-Count', images.length.toString());
-        res.json(
-            images.map((x) => ({
-                created_at: x.created_at,
-                id: x.generatedId,
-                name: x.name,
-                mimeType: x.mimeType,
-                location: `${process.env.SERVICE_HOST}:${process.env.SERVICE_PORT}/images/${x.generatedId}`
-            }))
-        );
+    getMany = (
+        context: ContextAdapter<Array<Image>>
+    ): Promise<Array<Image>> => {
+        return this._repository.find();
     };
 
-    getOne = async (req: Request, res: Response) => {
-        const readableStream = await this._minioClient.Download(
-            'images',
-            req.params.id
-        );
-
-        if (!readableStream.readable) {
-            return res.status(500).send('not readable');
-        }
-        // const contentType = stream.headers['content-type'];
-
-        res.setHeader('Content-Type', 'image/jpeg');
-        readableStream.pipe(res);
+    getOne = async (
+        context: ContextAdapter<internal.Readable>
+    ): Promise<internal.Readable> => {
+        return this._minioClient.Download('images', context._req.params.id);
     };
 }
 
 @Service()
-class Application implements IApplication {
+class UsecaseInteractor {
+    constructor(
+        private _images: ImagesUsecases,
+        private _response: ResponseFactory
+    ) {}
+
+    connect = this._images.connect;
+
+    post = async (req: Request, res: Response) => {
+        const context = new ContextAdapter<Image>(req, res);
+        const image = await this._images.upload(context);
+
+        context.set('output', image);
+
+        this._response.Create(context);
+    };
+
+    getMany = async (req: Request, res: Response) => {
+        const context = new ContextAdapter<Array<Image>>(req, res);
+        const images = await this._images.getMany(context);
+        context.set('output', images);
+        this._response.Create(context);
+    };
+
+    getOne = async (req: Request, res: Response) => {
+        const context = new ContextAdapter<internal.Readable>(req, res);
+        const stream = await this._images.getOne(context);
+
+        context.set('output', stream);
+        // if (!stream.readable) {
+        //     return res.status(500).send('not readable');
+        // }
+
+        this._response.Create(context);
+    };
+}
+
+@Service()
+class Server implements IServer {
     private _framework: Express;
-    constructor(private _application: ApplicationAdapter) {}
+    constructor(private _images: UsecaseInteractor) {}
 
     connect = () => {
-        this._application.connect();
-    }
+        this._images.connect();
+    };
 
     route = (): void => {
         this._framework = express();
         this._framework.use(cors({ origin: ORIGIN }));
         this._framework.use(express.json());
         this._framework.use(express.urlencoded({ extended: true }));
-        this._framework.post('/images', MULTER, this._application.upload);
-        this._framework.get('/images', this._application.getCollection);
-        this._framework.get('/images/:id', this._application.getOne);
-    }
+        this._framework.post('/images', MULTER, this._images.post);
+        this._framework.get('/images', this._images.getMany);
+        this._framework.get('/images/:id', this._images.getOne);
+    };
 
     run = async (): Promise<void> => {
         this._framework.listen(process.env.SERVICE_PORT, () => {
@@ -125,7 +140,7 @@ class Application implements IApplication {
                 `⚡️[server]: Server is running at ${process.env.SERVICE_HOST}:${process.env.SERVICE_PORT}`
             );
         });
-    }
+    };
 }
 
-export default Application;
+export default Server;

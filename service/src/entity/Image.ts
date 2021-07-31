@@ -9,7 +9,6 @@ interface IImage {
     generatedId: string;
     name: string;
     mimeType: string;
-
 }
 
 @Entity()
