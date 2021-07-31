@@ -2,7 +2,7 @@ import { Service } from 'typedi';
 import express, { Express } from 'express';
 import cors from 'cors';
 import Multer from 'multer';
-import { UsecaseInteractor } from '../usecases/Interactor';
+import { UsecaseInteractor } from '../usecases';
 import { ORIGIN } from '../constants';
 
 const MULTER = Multer({ storage: Multer.memoryStorage() }).single('IMAGE');
