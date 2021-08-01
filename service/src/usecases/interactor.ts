@@ -7,7 +7,7 @@ import { ResponseFactory } from '../factories/response';
 import { ImagesUsecases } from './Images';
 
 @Service()
-export class UsecaseInteractor {
+class UsecaseInteractor {
     constructor(
         private _images: ImagesUsecases,
         private _response: ResponseFactory
@@ -15,7 +15,7 @@ export class UsecaseInteractor {
 
     connect = this._images.connect;
 
-    post = async (req: Request, res: Response) => {
+    createOne = async (req: Request, res: Response) => {
         const context = new ContextAdapter<Image>(req, res);
         const image = await this._images.upload(context);
 
@@ -43,3 +43,5 @@ export class UsecaseInteractor {
         this._response.Create(context);
     };
 }
+
+export default UsecaseInteractor;

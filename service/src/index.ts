@@ -1,13 +1,6 @@
 import 'reflect-metadata';
 import { Container } from 'typedi';
-import Server, { IServer } from './adapters/server';
+import Server from './server';
+import { Application } from './app';
 
-export const Run = async () => {
-    const server = Container.get<IServer>(Server);
-
-    server.connect();
-    server.route();
-    server.run();
-};
-
-Run();
+Application(Container.get(Server));
