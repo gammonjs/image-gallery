@@ -1,7 +1,7 @@
 import internal from 'stream';
 import { Service } from 'typedi';
 import { Repository } from 'typeorm';
-import { ContextAdapter } from '../adapters/context';
+import ContextAdapter from '../adapters/context';
 import PostgresClient from '../adapters/postgres';
 import MinioClient from '../adapters/minio';
 import { Image } from '../entity/Image';

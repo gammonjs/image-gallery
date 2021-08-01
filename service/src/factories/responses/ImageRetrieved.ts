@@ -1,6 +1,6 @@
 import internal from 'stream';
 import { Service } from 'typedi';
-import { ContextAdapter } from '../../adapters/context';
+import ContextAdapter from '../../adapters/context';
 
 @Service()
 export class ImageRetrived {

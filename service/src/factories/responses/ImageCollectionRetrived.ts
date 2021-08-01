@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import { ContextAdapter } from '../../adapters/context';
+import ContextAdapter from '../../adapters/context';
 import { Image } from '../../entity/Image';
 import { SERVICE_DOMAIN } from '../../constants'
 

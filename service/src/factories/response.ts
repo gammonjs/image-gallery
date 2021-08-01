@@ -1,13 +1,13 @@
 import internal from 'stream';
 import { Service } from 'typedi';
-import { ContextAdapter } from '../../adapters/context';
-import { Image } from '../../entity/Image';
-import { ImageCollectionRetrived } from './ImageCollectionRetrived';
-import { ImageCreated } from './ImageCreated';
-import { ImageRetrived } from './ImageRetrieved';
+import ContextAdapter from '../adapters/context';
+import { Image } from '../entity/Image';
+import { ImageCollectionRetrived } from './responses/ImageCollectionRetrived';
+import { ImageCreated } from './responses/ImageCreated';
+import { ImageRetrived } from './responses/ImageRetrieved';
 
 @Service()
-export class ResponseFactory {
+class ResponseFactory {
     constructor(
         private _imageCreated: ImageCreated,
         private _imageRetrived: ImageRetrived,
@@ -28,3 +28,5 @@ export class ResponseFactory {
         }
     };
 }
+
+export default ResponseFactory;
