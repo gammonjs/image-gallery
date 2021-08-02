@@ -44,10 +44,16 @@ export class MinoClient {
     ): Promise<string> =>
         this.client.putObject(bucketName, objectName, stream, metaData);
 
-    Download = (
+    Download = async (
         bucketName: string,
         objectName: string
-    ): Promise<ReadableStream> => this.client.getObject(bucketName, objectName);
+    ): Promise<ReadableStream> => {
+        try {
+            return await this.client.getObject(bucketName, objectName);
+        } catch(e) {
+            return null
+        }
+    }
 }
 
 export default MinoClient;

@@ -17,7 +17,10 @@ class ResponseFactory {
     Create = (context: ContextAdapter<any>) => {
         const output = context.get('output');
 
-        if (output instanceof Image) {
+        if (output === null) {
+            context._res.sendStatus(404)
+        }
+        else if (output instanceof Image) {
             this._imageCreated.Create(context);
         } else if (output instanceof Array) {
             this._imageCollectionRetrived.Create(context);

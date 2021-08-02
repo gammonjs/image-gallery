@@ -1,7 +1,9 @@
 import { IServer } from "./server";
 
 export const Application = async (server: IServer) => {
-    server.connect();
-    server.route();
-    server.run();
+    const connected = await server.connect()
+    if(connected) {
+        server.route();
+        server.run();
+    }
 };

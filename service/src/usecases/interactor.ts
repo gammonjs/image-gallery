@@ -4,44 +4,39 @@ import { Service } from 'typedi';
 import ContextAdapter from '../adapters/context';
 import { Image } from '../entity/Image';
 import ResponseFactory from '../factories/response';
-import { ImagesUsecases } from './Images';
+
+export type UsecaseHandler = (context: ContextAdapter<any>) => Promise<any>;
 
 @Service()
 class UsecaseInteractor {
-    constructor(
-        private _images: ImagesUsecases,
-        private _response: ResponseFactory
-    ) {}
+    constructor(private _response: ResponseFactory) {}
 
-    connect = this._images.connect;
+    createOne =
+        (usecase: UsecaseHandler) =>
+        async (req: Request, res: Response): Promise<void> => {
+            const context = new ContextAdapter<Image>(req, res);
+            const image = await usecase(context);
+            context.set('output', image);
+            this._response.Create(context);
+        };
 
-    createOne = async (req: Request, res: Response): Promise<void> => {
-        const context = new ContextAdapter<Image>(req, res);
-        const image = await this._images.upload(context);
+    getMany =
+        (usecase: UsecaseHandler) =>
+        async (req: Request, res: Response): Promise<void> => {
+            const context = new ContextAdapter<Array<Image>>(req, res);
+            const images = await usecase(context);
+            context.set('output', images);
+            this._response.Create(context);
+        };
 
-        context.set('output', image);
-
-        this._response.Create(context);
-    };
-
-    getMany = async (req: Request, res: Response): Promise<void> => {
-        const context = new ContextAdapter<Array<Image>>(req, res);
-        const images = await this._images.getMany(context);
-        context.set('output', images);
-        this._response.Create(context);
-    };
-
-    getOne = async (req: Request, res: Response): Promise<void> => {
-        const context = new ContextAdapter<internal.Readable>(req, res);
-        const stream = await this._images.getOne(context);
-
-        context.set('output', stream);
-        // if (!stream.readable) {
-        //     return res.status(500).send('not readable');
-        // }
-
-        this._response.Create(context);
-    };
+    getOne =
+        (usecase: UsecaseHandler) =>
+        async (req: Request, res: Response): Promise<void> => {
+            const context = new ContextAdapter<internal.Readable>(req, res);
+            const stream = await usecase(context);
+            context.set('output', stream);
+            this._response.Create(context);
+        };
 }
 
 export default UsecaseInteractor;
