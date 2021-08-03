@@ -7,8 +7,14 @@ import ResponseFactory from '../factories/response';
 
 export type UsecaseHandler = (context: ContextAdapter<any>) => Promise<any>;
 
+export interface IUsecaseInteractor {
+    createOne(usecase: UsecaseHandler): (req: Request, res: Response) => Promise<void>
+    getMany(usecase: UsecaseHandler): (req: Request, res: Response) => Promise<void>
+    getOne(usecase: UsecaseHandler): (req: Request, res: Response) => Promise<void>
+}
+
 @Service()
-class UsecaseInteractor {
+class UsecaseInteractor implements IUsecaseInteractor {
     constructor(private _response: ResponseFactory) {}
 
     createOne =

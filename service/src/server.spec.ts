@@ -1,132 +1,180 @@
-import Server from './server';
-import { SERVICE_DOMAIN, SERVICE_PORT } from './constants';
-import UsecaseInteractor, { UsecaseHandler } from './usecases/interactor';
-import ImagesUsecases from './usecases/Images';
-import { NextFunction, Request, Response } from 'express';
-import Express from './adapters/express';
-import Multer from './adapters/multer';
-import Logger from './adapters/logger';
+import { Request, RequestHandler, Response } from 'express';
+import { IFramework } from './adapters/express';
+import { ILogger } from './adapters/logger';
+import { IMulterAdapter } from './adapters/multer';
+import { SERVICE_DOMAIN } from './constants';
+import Server, { ROUTE } from './server';
+import { IImagesUsecases } from './usecases/Images';
+import { IUsecaseInteractor, UsecaseHandler } from './usecases/interactor';
+
+const mockFramework = (): IFramework => {
+    const framework = <IFramework>{};
+    framework.post = jest.fn();
+    framework.get = jest.fn();
+    return framework;
+};
+
+const UPLOAD = (req: Request, res: Response): Promise<void> =>
+    new Promise((resolve, reject) => resolve());
+const GET_MANY = (req: Request, res: Response): Promise<void> =>
+    new Promise((resolve, reject) => resolve());
+const GET_ONE = (req: Request, res: Response): Promise<void> =>
+    new Promise((resolve, reject) => resolve());
+const MULTER_MIDDLEWARE = null;
 
 describe('Server', () => {
     it('should call the usecase interactor connect method', async () => {
         // arrange
-        const images = new MockImagesUsecases(null, null, null, null);
-        const server = new Server(null, null, null, null, images);
+        const mockImagesUsecase = <IImagesUsecases>{};
+        mockImagesUsecase.connect = jest.fn();
+
+        const server = new Server(null, null, null, null, mockImagesUsecase);
 
         // act
         server.connect();
 
         // assert
-        expect(images.connect).toBeCalledTimes(1);
+        expect(mockImagesUsecase.connect).toBeCalledTimes(1);
     });
 
-    it('should route the correct paths to the correct handlers', async () => {
+    it('should route "POST: /images" with multer middleware and image upload usecase', async () => {
         // arrange
-        const interactor = new MockUsecaseInteractor(null);
-        const images = new MockImagesUsecases(null, null, null, null);
-        const framework = new MockExpress();
-        const multer = new MockMulter();
-        const server = new Server(framework, multer, null, interactor, images);
+        const framework = mockFramework();
+
+        const fields = new Map();
+        fields.set('IMAGE', MULTER_MIDDLEWARE);
+
+        const mockMulter = <IMulterAdapter>{};
+        mockMulter.handler = (field: string): RequestHandler =>
+            fields.get(field);
+
+        const mockImagesUsecase = <IImagesUsecases>{};
+        mockImagesUsecase.upload = jest.fn();
+
+        const interactions = new Map();
+        interactions.set(mockImagesUsecase.upload, UPLOAD);
+
+        const usecase = (
+            usecase: UsecaseHandler
+        ): ((req: Request, res: Response) => Promise<void>) =>
+            interactions.get(usecase);
+
+        const mockUsecaseInteractor = <IUsecaseInteractor>{};
+        mockUsecaseInteractor.createOne = usecase;
+        mockUsecaseInteractor.getMany = jest.fn();
+        mockUsecaseInteractor.getOne = jest.fn();
+
+        const server = new Server(
+            framework,
+            mockMulter,
+            null,
+            mockUsecaseInteractor,
+            mockImagesUsecase
+        );
 
         // act
         server.route();
 
         // assert
-        expect(framework.post.mock.calls).toEqual([
-            ['/images', multer.Handler, interactor.MockCreateOne]
-        ]);
+        expect(framework.post).toHaveBeenCalledWith(
+            ROUTE.IMAGES,
+            MULTER_MIDDLEWARE,
+            UPLOAD
+        );
+    });
 
-        expect(framework.get.mock.calls).toEqual([
-            ['/images', interactor.MockGetMany],
-            ['/images/:id', interactor.MockGetOne]
-        ]);
+    it('should route "GET: /images" with image getMany usecase', async () => {
+        // arrange
+        const framework = mockFramework();
 
-        expect(framework.listen).toHaveBeenCalledTimes(0);
+        const mockMulter = <IMulterAdapter>{};
+        mockMulter.handler = jest.fn();
+
+        const mockImagesUsecase = <IImagesUsecases>{};
+        mockImagesUsecase.getMany = jest.fn();
+
+        const interactions = new Map();
+        interactions.set(mockImagesUsecase.getMany, GET_MANY);
+
+        const usecase = (
+            usecase: UsecaseHandler
+        ): ((req: Request, res: Response) => Promise<void>) =>
+            interactions.get(usecase);
+
+        const mockUsecaseInteractor = <IUsecaseInteractor>{};
+        mockUsecaseInteractor.createOne = jest.fn();
+        mockUsecaseInteractor.getMany = usecase;
+        mockUsecaseInteractor.getOne = jest.fn();
+
+        const server = new Server(
+            framework,
+            mockMulter,
+            null,
+            mockUsecaseInteractor,
+            mockImagesUsecase
+        );
+
+        // act
+        server.route();
+
+        // assert
+        expect(framework.get).toHaveBeenCalledWith(ROUTE.IMAGES, GET_MANY);
+    });
+
+    it('should route "GET: /images/:id" with multer image getOne usecase', async () => {
+        // arrange
+        const framework = mockFramework();
+
+        const mockMulter = <IMulterAdapter>{};
+        mockMulter.handler = jest.fn();
+
+        const mockImagesUsecase = <IImagesUsecases>{};
+        mockImagesUsecase.getOne = jest.fn();
+
+        const interactions = new Map();
+        interactions.set(mockImagesUsecase.getOne, GET_ONE);
+
+        const usecase = (
+            usecase: UsecaseHandler
+        ): ((req: Request, res: Response) => Promise<void>) =>
+            interactions.get(usecase);
+
+        const mockUsecaseInteractor = <IUsecaseInteractor>{};
+        mockUsecaseInteractor.createOne = jest.fn();
+        mockUsecaseInteractor.getMany = jest.fn();
+        mockUsecaseInteractor.getOne = usecase;
+
+        const server = new Server(
+            framework,
+            mockMulter,
+            null,
+            mockUsecaseInteractor,
+            mockImagesUsecase
+        );
+
+        // act
+        server.route();
+
+        // assert
+        expect(framework.get).toHaveBeenCalledWith(ROUTE.IMAGES_BY_ID, GET_ONE);
     });
 
     it('should log and listen', async () => {
         // arrange
-        const framework = new MockExpress();
-        const logger = new MockLogger();
+        const framework = mockFramework();
+
+        const logger = <ILogger>{};
+        logger.info = jest.fn();
+
         const server = new Server(framework, null, logger, null, null);
 
         // act
         await server.run();
 
         // assert
-        expect(logger.info.mock.calls).toEqual([
-            [`⚡️[server]: Server is running at ${SERVICE_DOMAIN}`]
-        ]);
-        expect(framework.listen.mock.calls).toEqual([[SERVICE_PORT]]);
-        expect(framework.post).toHaveBeenCalledTimes(0);
-        expect(framework.get).toHaveBeenCalledTimes(0);
+        expect(logger.info).toBeCalledWith(
+            `⚡️[server]: Server is running at ${SERVICE_DOMAIN}`
+        );
+        expect(logger.info).toBeCalledTimes(0);
     });
 });
-
-type Handler = (req: Request, res: Response) => Promise<void>;
-
-jest.mock('./usecases/interactor');
-class MockUsecaseInteractor extends UsecaseInteractor {
-    public readonly MockCreateOne = (
-        req: Request,
-        res: Response
-    ): Promise<void> => new Promise((resolve, reject) => resolve());
-
-    public readonly MockGetMany = (
-        req: Request,
-        res: Response
-    ): Promise<void> => new Promise((resolve, reject) => resolve());
-
-    public readonly MockGetOne = (
-        req: Request,
-        res: Response
-    ): Promise<void> => new Promise((resolve, reject) => resolve());
-
-    connect = jest.fn();
-
-    createOne = jest.fn(
-        (usecase: UsecaseHandler): Handler => this.MockCreateOne
-    );
-
-    getMany = jest.fn(
-        (usecase: UsecaseHandler): Handler => this.MockGetMany
-    );
-
-    getOne = jest.fn(
-        (usecase: UsecaseHandler): Handler => this.MockGetOne
-    );
-}
-
-jest.mock('./usecases/Images');
-class MockImagesUsecases extends ImagesUsecases {
-    connect = jest.fn(
-        (): Promise<boolean> => new Promise((resolve, reject) => resolve(true))
-    );
-    upload = jest.fn();
-    getMany = jest.fn();
-    getOne = jest.fn();
-}
-
-jest.mock('./adapters/express');
-class MockExpress extends Express {
-    public readonly Listen = (port: string, callback?: () => void): any => {};
-    post = jest.fn();
-    get = jest.fn();
-    listen = jest.fn(this.Listen);
-}
-
-jest.mock('./adapters/multer');
-class MockMulter extends Multer {
-    public readonly Handler = (
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): void => {};
-    handler = jest.fn((field: string) => this.Handler);
-}
-
-jest.mock('./adapters/logger');
-class MockLogger extends Logger {
-    public readonly Info = () => {};
-    info = jest.fn((value: any) => this.Info);
-}

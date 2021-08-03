@@ -7,13 +7,21 @@ import { Image } from '../entity/Image';
 import LoggerAdapter from '../adapters/logger';
 import ImageFactory from '../factories/ImageFactory';
 
+export interface IImagesUsecases {
+    connect(): Promise<boolean>;
+    upload(context: ContextAdapter<Image>): Promise<Image>
+    getMany(context: ContextAdapter<Array<Image>>): Promise<Array<Image>>
+    getOne(context: ContextAdapter<internal.Readable>): Promise<internal.Readable>
+}
+
+
 @Service()
-class ImagesUsecases {
+class ImagesUsecases implements IImagesUsecases {
     constructor(
         private readonly _minioClient: MinioClient,
         private readonly _postgresClient: PostgresClient,
         private readonly _logger: LoggerAdapter,
-        private readonly _image: ImageFactory
+        private readonly _imageFactory: ImageFactory
     ) {}
 
     connect = async (): Promise<boolean> => {
@@ -35,17 +43,20 @@ class ImagesUsecases {
     };
 
     upload = async (context: ContextAdapter<Image>): Promise<Image> => {
-        
-        const image = this._image.Create(context._req.file.originalname, context._req.file.mimetype)
+        const image = this._imageFactory.Create(
+            context._req.file.originalname,
+            context._req.file.mimetype
+        );
 
         await this._minioClient.Upload(
             'images',
             image.generatedId,
             context._req.file.buffer
         );
-        
+
         const repository = this._postgresClient.getRepository(Image);
         const images = repository.create(image);
+
         return repository.save(images);
     };
 

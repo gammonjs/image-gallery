@@ -1,10 +1,10 @@
-import { Service } from 'typedi';
+import { Inject, Service } from 'typedi';
 import { SERVICE_DOMAIN, SERVICE_PORT } from './constants';
-import UsecaseInteractor from './usecases/interactor';
-import Express from './adapters/express';
-import Multer from './adapters/multer';
-import Logger from './adapters/logger';
-import ImagesUsecases from './usecases/Images';
+import UsecaseInteractor, { IUsecaseInteractor } from './usecases/interactor';
+import MulterAdapter, { IMulterAdapter } from './adapters/multer';
+import LoggerAdapter, { ILogger } from './adapters/logger';
+import ImagesUsecases, { IImagesUsecases } from './usecases/Images';
+import ExpressAdapter, { IFramework } from './adapters/express';
 
 export interface IServer {
     connect(): Promise<boolean>;
@@ -12,31 +12,45 @@ export interface IServer {
     run(): Promise<void>;
 }
 
+export enum ROUTE {
+    IMAGES = '/images',
+    IMAGES_BY_ID = '/images/:id'
+}
+
 @Service()
 class Server implements IServer {
     constructor(
-        private readonly _framework: Express,
-        private readonly _multer: Multer,
-        private readonly _logger: Logger,
-        private readonly _interactor: UsecaseInteractor,
-        private readonly _images: ImagesUsecases
+        @Inject(() => ExpressAdapter)
+        private readonly _framework: IFramework,
+
+        @Inject(() => MulterAdapter)
+        private readonly _multer: IMulterAdapter,
+
+        @Inject(() => LoggerAdapter)
+        private readonly _logger: ILogger,
+
+        @Inject(() => UsecaseInteractor)
+        private readonly _interactor: IUsecaseInteractor,
+
+        @Inject(() => ImagesUsecases)
+        private readonly _usecase: IImagesUsecases
     ) {}
 
-    connect = () => this._images.connect();
+    connect = () => this._usecase.connect();
 
     route = (): void => {
         this._framework.post(
-            '/images',
+            ROUTE.IMAGES,
             this._multer.handler('IMAGE'),
-            this._interactor.createOne(this._images.upload)
+            this._interactor.createOne(this._usecase.upload)
         );
         this._framework.get(
-            '/images',
-            this._interactor.getMany(this._images.getMany)
+            ROUTE.IMAGES,
+            this._interactor.getMany(this._usecase.getMany)
         );
         this._framework.get(
-            '/images/:id',
-            this._interactor.getOne(this._images.getOne)
+            ROUTE.IMAGES_BY_ID,
+            this._interactor.getOne(this._usecase.getOne)
         );
     };
 

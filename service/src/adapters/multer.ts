@@ -2,8 +2,12 @@ import { RequestHandler } from 'express';
 import { Service } from 'typedi';
 import Multer from 'multer';
 
+export interface IMulterAdapter {
+    handler(field: string): RequestHandler;
+}
+
 @Service()
-class MulterAdapter {
+class MulterAdapter implements IMulterAdapter {
     public readonly _multer: Multer.Multer;
 
     constructor() {
