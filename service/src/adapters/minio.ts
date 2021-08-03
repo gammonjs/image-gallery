@@ -1,23 +1,10 @@
 import { Client, ItemBucketMetadata, Region } from 'minio';
-import { Readable as ReadableStream } from 'stream';
 import { Service } from 'typedi';
-
-export interface IMinoClient {
-    MakeBucket(bucketName: string, region: Region): Promise<boolean>;
-    Upload(
-        bucketName: string,
-        objectName: string,
-        stream: string | ReadableStream | Buffer,
-        metaData?: ItemBucketMetadata
-    ): Promise<string>
-    Download(
-        bucketName: string,
-        objectName: string
-    ): Promise<ReadableStream>
-}
+import { IMinioClient } from '../contracts';
+import { Readable as ReadableStream } from 'stream';
 
 @Service()
-class MinoClient implements IMinoClient {
+class MinioClient implements IMinioClient {
     client: Client;
 
     constructor() {
@@ -70,4 +57,4 @@ class MinoClient implements IMinoClient {
     }
 }
 
-export default MinoClient;
+export default MinioClient;

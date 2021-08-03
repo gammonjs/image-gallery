@@ -1,20 +1,21 @@
 import internal from 'stream';
 import { Service } from 'typedi';
 import ContextAdapter from '../adapters/context';
+import { IResponseFactory } from '../contracts';
 import { Image } from '../entity/Image';
 import { ImageCollectionRetrived } from './responses/ImageCollectionRetrived';
 import { ImageCreated } from './responses/ImageCreated';
 import { ImageRetrived } from './responses/ImageRetrieved';
 
 @Service()
-class ResponseFactory {
+class ResponseFactory implements IResponseFactory {
     constructor(
         private _imageCreated: ImageCreated,
         private _imageRetrived: ImageRetrived,
         private _imageCollectionRetrived: ImageCollectionRetrived
     ) {}
 
-    Create = (context: ContextAdapter<any>) => {
+    Create = (context: ContextAdapter<any>): void => {
         const output = context.get('output');
 
         if (output === null) {

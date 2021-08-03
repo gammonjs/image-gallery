@@ -2,13 +2,7 @@ import { Service } from 'typedi';
 import express, { Express } from 'express';
 import cors from 'cors';
 import { ORIGIN } from '../constants';
-
-export interface IFramework {
-    use(args: any): void;
-    post(path: string, ...args: any[]): void;
-    get(path: string, ...args: any[]): void;
-    listen(port: string, callback?: () => void): void;
-}
+import { IFramework } from '../contracts';
 
 @Service()
 class ExpressAdapter implements IFramework {

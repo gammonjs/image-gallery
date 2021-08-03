@@ -1,13 +1,10 @@
 import { RequestHandler } from 'express';
 import { Service } from 'typedi';
 import Multer from 'multer';
-
-export interface IMulterAdapter {
-    handler(field: string): RequestHandler;
-}
+import { IFormData } from '../contracts';
 
 @Service()
-class MulterAdapter implements IMulterAdapter {
+class MulterAdapter implements IFormData {
     public readonly _multer: Multer.Multer;
 
     constructor() {

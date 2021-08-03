@@ -1,26 +1,24 @@
 import internal from 'stream';
-import { Service } from 'typedi';
-import ContextAdapter from '../adapters/context';
-import PostgresClient from '../adapters/postgres';
-import MinioClient from '../adapters/minio';
+import { Inject, Service } from 'typedi';
+import { ContextAdapter, PostgresClient, MinioClient } from '../adapters';
 import { Image } from '../entity/Image';
-import LoggerAdapter from '../adapters/logger';
+import ConsoleLoggerAdapter from '../adapters/logger';
 import ImageFactory from '../factories/ImageFactory';
-
-export interface IImagesUsecases {
-    connect(): Promise<boolean>;
-    upload(context: ContextAdapter<Image>): Promise<Image>
-    getMany(context: ContextAdapter<Array<Image>>): Promise<Array<Image>>
-    getOne(context: ContextAdapter<internal.Readable>): Promise<internal.Readable>
-}
-
+import { IImagesUsecase, IMinioClient } from '../contracts';
 
 @Service()
-class ImagesUsecases implements IImagesUsecases {
+class ImagesUsecases implements IImagesUsecase {
     constructor(
-        private readonly _minioClient: MinioClient,
+        @Inject(/* istanbul ignore next */ () => MinioClient)
+        private readonly _minioClient: IMinioClient,
+
+        @Inject(/* istanbul ignore next */ () => PostgresClient)
         private readonly _postgresClient: PostgresClient,
-        private readonly _logger: LoggerAdapter,
+
+        @Inject(/* istanbul ignore next */ () => ConsoleLoggerAdapter)
+        private readonly _logger: ConsoleLoggerAdapter,
+
+        @Inject(/* istanbul ignore next */ () => ImageFactory)
         private readonly _imageFactory: ImageFactory
     ) {}
 

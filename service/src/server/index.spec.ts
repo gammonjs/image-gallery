@@ -1,16 +1,20 @@
+import Server from '.';
+import { FIELD, ROUTE, SERVICE_DOMAIN, SERVICE_PORT } from '../constants';
 import { Request, RequestHandler, Response } from 'express';
-import { IFramework } from './adapters/express';
-import { ILogger } from './adapters/logger';
-import { IMulterAdapter } from './adapters/multer';
-import { SERVICE_DOMAIN } from './constants';
-import Server, { ROUTE } from './server';
-import { IImagesUsecases } from './usecases/Images';
-import { IUsecaseInteractor, UsecaseHandler } from './usecases/interactor';
+import {
+    IFramework,
+    ILogger,
+    IFormData,
+    IImagesUsecase,
+    UsecaseHandler,
+    IUsecaseInteractor
+} from '../contracts';
 
 const mockFramework = (): IFramework => {
     const framework = <IFramework>{};
     framework.post = jest.fn();
     framework.get = jest.fn();
+    framework.listen = jest.fn();
     return framework;
 };
 
@@ -25,7 +29,7 @@ const MULTER_MIDDLEWARE = null;
 describe('Server', () => {
     it('should call the usecase interactor connect method', async () => {
         // arrange
-        const mockImagesUsecase = <IImagesUsecases>{};
+        const mockImagesUsecase = <IImagesUsecase>{};
         mockImagesUsecase.connect = jest.fn();
 
         const server = new Server(null, null, null, null, mockImagesUsecase);
@@ -42,13 +46,13 @@ describe('Server', () => {
         const framework = mockFramework();
 
         const fields = new Map();
-        fields.set('IMAGE', MULTER_MIDDLEWARE);
+        fields.set(FIELD.IMAGE, MULTER_MIDDLEWARE);
 
-        const mockMulter = <IMulterAdapter>{};
+        const mockMulter = <IFormData>{};
         mockMulter.handler = (field: string): RequestHandler =>
             fields.get(field);
 
-        const mockImagesUsecase = <IImagesUsecases>{};
+        const mockImagesUsecase = <IImagesUsecase>{};
         mockImagesUsecase.upload = jest.fn();
 
         const interactions = new Map();
@@ -87,10 +91,10 @@ describe('Server', () => {
         // arrange
         const framework = mockFramework();
 
-        const mockMulter = <IMulterAdapter>{};
+        const mockMulter = <IFormData>{};
         mockMulter.handler = jest.fn();
 
-        const mockImagesUsecase = <IImagesUsecases>{};
+        const mockImagesUsecase = <IImagesUsecase>{};
         mockImagesUsecase.getMany = jest.fn();
 
         const interactions = new Map();
@@ -125,10 +129,10 @@ describe('Server', () => {
         // arrange
         const framework = mockFramework();
 
-        const mockMulter = <IMulterAdapter>{};
+        const mockMulter = <IFormData>{};
         mockMulter.handler = jest.fn();
 
-        const mockImagesUsecase = <IImagesUsecases>{};
+        const mockImagesUsecase = <IImagesUsecase>{};
         mockImagesUsecase.getOne = jest.fn();
 
         const interactions = new Map();
@@ -172,9 +176,12 @@ describe('Server', () => {
         await server.run();
 
         // assert
+        expect(framework.listen).toBeCalledTimes(1);
+        expect(framework.listen).toBeCalledWith(SERVICE_PORT);
+
+        expect(logger.info).toBeCalledTimes(1);
         expect(logger.info).toBeCalledWith(
             `⚡️[server]: Server is running at ${SERVICE_DOMAIN}`
         );
-        expect(logger.info).toBeCalledTimes(0);
     });
 });

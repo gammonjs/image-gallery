@@ -1,4 +1,4 @@
-import { IServer } from "./server";
+import { IServer } from "../contracts";
 
 export const Application = async (server: IServer) => {
     const connected = await server.connect()

@@ -1,5 +1,5 @@
-import { IServer } from './server';
-import { Application } from './app';
+import { IServer } from '../contracts';
+import { Application } from '.';
 
 describe('Application', () => {
     it('should get server from container, connect, route and run', async () => {
